@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英単語テスト</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;color:#1a1a1a;min-height:100vh;display:flex;justify-content:center;padding:2rem 1rem;}
+.app{width:100%;max-width:640px;}
+.screen{display:none;}.screen.active{display:block;}
+.hd{text-align:center;margin-bottom:1.5rem;}
+.hd h1{font-size:24px;font-weight:600;color:#1a1a1a;}
+.hd p{font-size:14px;color:#666;margin-top:4px;}
+.card{background:#fff;border:1px solid #e8e8e3;border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+label{font-size:13px;color:#666;display:block;margin-bottom:6px;}
+select{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;background:#fafafa;color:#1a1a1a;font-size:14px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' fill='none' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;}
+select:focus{outline:none;border-color:#888;}
+.row{display:flex;gap:12px;margin-bottom:1rem;}
+.col{flex:1;}
+
+/* ユニット選択 */
+.unit-section{margin-bottom:12px;}
+.unit-section-title{font-size:12px;font-weight:500;color:#888;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e8e8e3;display:flex;align-items:center;justify-content:space-between;}
+.unit-section-title span{font-size:11px;color:#aaa;font-weight:400;}
+.unit-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px;}
+.unit-btn{padding:5px 12px;font-size:12px;border:1px solid #ddd;border-radius:20px;background:#fff;color:#666;cursor:pointer;transition:all .15s;}
+.unit-btn:hover{border-color:#888;color:#333;}
+.unit-btn.sel{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.select-all-btn{padding:4px 10px;font-size:11px;border:1px solid #ddd;border-radius:20px;background:#f5f5f0;color:#666;cursor:pointer;transition:all .15s;}
+.select-all-btn:hover{background:#e8e8e3;}
+.word-count-info{font-size:12px;color:#999;margin-top:6px;}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:14px;cursor:pointer;transition:all .15s;}
+.btn:hover{background:#f5f5f0;}
+.btn:active{transform:scale(.98);}
+.btn-p{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.btn-p:hover{background:#333;border-color:#333;}
+.btn-ok{background:#EAF3DE;border-color:#639922;color:#3B6D11;font-weight:500;}
+.btn-ok:hover{background:#C0DD97;}
+.btn-ng{background:#FCEBEB;border-color:#E24B4A;color:#A32D2D;font-weight:500;}
+.btn-ng:hover{background:#F7C1C1;}
+.btn-row{display:flex;justify-content:center;gap:12px;margin-top:1rem;}
+.btn-full{width:100%;margin-bottom:10px;}
+.prog-wrap{height:5px;background:#e8e8e3;border-radius:3px;margin-bottom:1.5rem;}
+.prog-bar{height:5px;background:#1a1a1a;border-radius:3px;transition:width .3s;}
+.q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;}
+.q-label{font-size:12px;color:#666;}
+.q-cnt{font-size:13px;color:#666;}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;}
+.badge-mc{background:#E6F1FB;color:#185FA5;}
+.badge-wr{background:#FAEEDA;color:#854F0B;}
+.q-unit-tag{font-size:12px;color:#999;margin-bottom:6px;}
+.q-word{font-size:38px;font-weight:600;color:#1a1a1a;text-align:center;margin:1.25rem 0;line-height:1.3;}
+.info-note{font-size:13px;color:#666;background:#f5f5f0;border-radius:8px;padding:10px 14px;margin-bottom:12px;line-height:1.6;}
+.answer-box{background:#f5f5f0;border:1px solid #e8e8e3;border-radius:8px;padding:1.25rem;text-align:center;margin:10px 0;}
+.answer-label{font-size:11px;color:#999;margin-bottom:6px;}
+.answer-word{font-size:28px;font-weight:600;color:#1a1a1a;}
+.judge-label{font-size:13px;color:#666;text-align:center;margin-bottom:10px;}
+.judge-row{display:flex;gap:12px;}
+.judge-row .btn{flex:1;font-size:15px;}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0;}
+.ch-btn{padding:14px 12px;text-align:center;border:1px solid #ddd;border-radius:8px;background:#fff;color:#1a1a1a;font-size:15px;cursor:pointer;transition:all .15s;}
+.ch-btn:hover:not(:disabled){background:#f5f5f0;}
+.ch-btn.correct{background:#EAF3DE;border-color:#639922;color:#3B6D11;font-weight:500;}
+.ch-btn.wrong{background:#FCEBEB;border-color:#E24B4A;color:#A32D2D;}
+.ch-btn:disabled{cursor:default;}
+.feedback{text-align:center;font-size:15px;font-weight:500;min-height:24px;margin:8px 0;}
+.fb-ok{color:#3B6D11;}.fb-ng{color:#A32D2D;}
+.nav-row{display:flex;justify-content:flex-end;margin-top:.75rem;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem;}
+.stat{background:#f5f5f0;border-radius:8px;padding:1rem;text-align:center;}
+.stat-n{font-size:30px;font-weight:600;color:#1a1a1a;}
+.stat-l{font-size:12px;color:#666;margin-top:2px;}
+.section-title{font-size:14px;font-weight:500;margin-bottom:8px;}
+.miss-item{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #e8e8e3;font-size:14px;}
+.miss-en{font-weight:500;color:#1a1a1a;}
+.miss-ja{color:#666;}
+.round-badge{display:inline-block;background:#FAEEDA;color:#854F0B;font-size:12px;padding:3px 10px;border-radius:20px;margin-bottom:1rem;}
+.perfect{text-align:center;padding:3rem 0;}
+.perfect-star{font-size:56px;color:#EF9F27;margin-bottom:1rem;}
+.perfect-title{font-size:26px;font-weight:600;margin-bottom:8px;}
+.perfect-sub{font-size:14px;color:#666;}
+.loading{text-align:center;padding:3rem 1rem;}
+.spinner{width:36px;height:36px;border:3px solid #e8e8e3;border-top-color:#1a1a1a;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-msg{font-size:14px;color:#666;}
+.error-box{background:#FCEBEB;border:1px solid #E24B4A;border-radius:8px;padding:1rem;color:#A32D2D;font-size:14px;line-height:1.6;margin-bottom:1rem;}
+.url-input{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:monospace;background:#fafafa;color:#1a1a1a;margin-top:6px;}
+.url-input:focus{outline:none;border-color:#888;}
+.step-list{counter-reset:step;list-style:none;padding:0;}
+.step-list li{counter-increment:step;padding:8px 0 8px 32px;position:relative;font-size:13px;color:#444;border-bottom:1px solid #e8e8e3;line-height:1.6;}
+.step-list li:last-child{border-bottom:none;}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:8px;width:20px;height:20px;background:#1a1a1a;color:#fff;border-radius:50%;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:600;}
+code{background:#f0f0eb;padding:1px 5px;border-radius:4px;font-family:monospace;font-size:12px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- URL設定画面 -->
+<div class="screen active" id="s-url">
+  <div class="hd"><h1>英単語テスト</h1><p>初回設定：Apps Script URLを入力してください</p></div>
+  <div class="card">
+    <label>Google Apps Script ウェブアプリのURL</label>
+    <input class="url-input" type="text" id="api-url" placeholder="https://script.google.com/macros/s/xxxxxx/exec">
+    <div style="font-size:12px;color:#999;margin-top:8px;">入力後このPCに保存されます（次回から不要）</div>
+  </div>
+  <div id="url-error" style="display:none;" class="error-box"></div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="saveUrl()">接続して単語を読み込む</button>
+  </div>
+  <div class="card" style="margin-top:1rem;">
+    <div style="font-size:13px;font-weight:500;margin-bottom:10px;">初回設定の手順</div>
+    <ol class="step-list">
+      <li>Googleスプレッドシートを新規作成し、シート名を <code>中1</code> <code>中2</code> <code>中3</code> にする</li>
+      <li>各シートの1行目に <code>Unit</code> <code>英語</code> <code>日本語</code> とヘッダーを入力</li>
+      <li>A列のUnitは <code>1-1</code> <code>1-2</code> <code>2-1</code> のように入力（ハイフン区切り）</li>
+      <li>スプレッドシートのメニュー「拡張機能」→「Apps Script」を開く</li>
+      <li>配布した <code>Code.gs</code> の内容を貼り付けて保存</li>
+      <li>「デプロイ」→「新しいデプロイ」→ 種類：ウェブアプリ、アクセス：全員 で公開</li>
+      <li>表示されたURLをこの画面に貼り付ける</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ローディング -->
+<div class="screen" id="s-loading">
+  <div class="loading">
+    <div class="spinner"></div>
+    <div class="load-msg">単語データを読み込み中...</div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div class="screen" id="s-setup">
+  <div class="hd"><h1>英単語テスト</h1><p>学年・ユニットを選んでテストを始めよう</p></div>
+  <div class="card">
+    <div class="row">
+      <div class="col">
+        <label>学年</label>
+        <select id="grade" onchange="updateUnits()">
+          <option value="j1">中学1年</option>
+          <option value="j2" selected>中学2年</option>
+          <option value="j3">中学3年</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>出題方向</label>
+        <select id="direction">
+          <option value="both">日英・英日どちらも</option>
+          <option value="ja2en">日本語→英語のみ</option>
+          <option value="en2ja">英語→日本語のみ</option>
+        </select>
+      </div>
+    </div>
+    <label>ユニット選択（複数選択可）</label>
+    <div id="unit-sections"><div style="font-size:13px;color:#999;">ユニットなし</div></div>
+    <div class="word-count-info" id="word-count-info">0 単語選択中</div>
+  </div>
+  <div class="card">
+    <div class="row" style="margin-bottom:0;">
+      <div class="col">
+        <label>出題順</label>
+        <select id="order">
+          <option value="random">ランダム</option>
+          <option value="order">ユニット順</option>
+        </select>
+      </div>
+      <div class="col">
+        <label>出題数上限</label>
+        <select id="qlimit">
+          <option value="all">すべて</option>
+          <option value="10">10問</option>
+          <option value="20">20問</option>
+          <option value="30">30問</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="font-size:13px;color:#666;line-height:1.7;">
+    <strong style="color:#1a1a1a;">問題形式について</strong><br>
+    4択問題：選択肢をタップして正解を選ぶ<br>
+    日→英 / 英→日：ノートに書いてから「答えを見る」→ 自己採点
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+    <button class="btn" style="font-size:13px;" onclick="reloadWords()">単語を再読み込み</button>
+    <button class="btn" style="font-size:13px;" onclick="resetUrl()">URL設定をリセット</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="startQuiz()">テスト開始</button>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="screen" id="s-quiz">
+  <div class="hd"><h1>英単語テスト</h1></div>
+  <div class="prog-wrap"><div class="prog-bar" id="prog"></div></div>
+  <div class="q-meta">
+    <div class="q-label" id="q-label"></div>
+    <div class="q-cnt" id="q-cnt"></div>
+  </div>
+  <div class="card" style="text-align:center;">
+    <div class="q-unit-tag" id="q-unit-tag"></div>
+    <div class="q-word" id="q-word"></div>
+    <div id="mc-area"><div class="choices" id="choices"></div></div>
+    <div id="wr-area" style="display:none;">
+      <div class="info-note">ノートに答えを書いてから「答えを見る」を押してください</div>
+      <button class="btn btn-full" id="show-ans-btn" onclick="showAnswer()">答えを見る</button>
+      <div class="answer-box" id="ans-box" style="display:none;">
+        <div class="answer-label">正解</div>
+        <div class="answer-word" id="ans-word"></div>
+      </div>
+      <div id="self-judge" style="display:none;">
+        <div class="judge-label">ノートの答えと合っていましたか？</div>
+        <div class="judge-row">
+          <button class="btn btn-ok" onclick="judgeAnswer(true)">○ 正解</button>
+          <button class="btn btn-ng" onclick="judgeAnswer(false)">✕ 不正解</button>
+        </div>
+      </div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  <div class="nav-row">
+    <button class="btn btn-p" id="next-btn" onclick="nextQ()" style="display:none;">次へ →</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="s-result">
+  <div class="hd"><h1>結果</h1></div>
+  <div style="text-align:center;margin-bottom:1rem;" id="round-info"></div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-n" id="r-score"></div><div class="stat-l">正解</div></div>
+    <div class="stat"><div class="stat-n" id="r-total"></div><div class="stat-l">問題数</div></div>
+    <div class="stat"><div class="stat-n" id="r-pct"></div><div class="stat-l">正答率</div></div>
+  </div>
+  <div id="miss-sec" style="display:none;">
+    <div class="section-title">間違えた単語</div>
+    <div class="card" style="padding:0 1.25rem;"><div id="miss-list"></div></div>
+  </div>
+  <div class="btn-row" style="flex-wrap:wrap;">
+    <button class="btn" onclick="showScreen('s-setup')">設定に戻る</button>
+    <button class="btn btn-p" id="retry-btn" onclick="retryMiss()" style="display:none;">間違いのみ再テスト</button>
+  </div>
+</div>
+
+<!-- PERFECT -->
+<div class="screen" id="s-perfect">
+  <div class="perfect">
+    <div class="perfect-star">★</div>
+    <div class="perfect-title">全問正解！</div>
+    <div class="perfect-sub" id="perf-sub"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-p" onclick="showScreen('s-setup')">もう一度選択する</button>
+  </div>
+</div>
+
+</div>
+<script>
+const STORAGE_KEY_URL='eigo_quiz_api_url';
+const STORAGE_KEY_DATA='eigo_quiz_words';
+let WORDS={},selUnits={},questions=[],current=0,score=0,missedWords=[],answered=false,roundNum=1;
+function $(id){return document.getElementById(id);}
+function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');}
+
+window.addEventListener('load',()=>{
+  const savedUrl=localStorage.getItem(STORAGE_KEY_URL);
+  const savedData=localStorage.getItem(STORAGE_KEY_DATA);
+  if(savedUrl&&savedData){
+    try{WORDS=JSON.parse(savedData);showScreen('s-setup');updateUnits();}
+    catch(e){showScreen('s-url');}
+  } else {showScreen('s-url');}
+});
+
+function saveUrl(){
+  const url=$('api-url').value.trim();
+  if(!url.startsWith('https://script.google.com')){showUrlError('正しいGoogle Apps ScriptのURLを入力してください');return;}
+  localStorage.setItem(STORAGE_KEY_URL,url);
+  fetchWords(url);
+}
+function reloadWords(){const url=localStorage.getItem(STORAGE_KEY_URL);if(!url){showScreen('s-url');return;}fetchWords(url);}
+function resetUrl(){localStorage.removeItem(STORAGE_KEY_URL);localStorage.removeItem(STORAGE_KEY_DATA);showScreen('s-url');}
+function fetchWords(url){
+  showScreen('s-loading');
+  fetch(url)
+    .then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(data=>{WORDS=data;localStorage.setItem(STORAGE_KEY_DATA,JSON.stringify(data));showScreen('s-setup');updateUnits();})
+    .catch(err=>{showScreen('s-url');showUrlError('読み込みに失敗しました。URLを確認してください。\n('+err.message+')');});
+}
+function showUrlError(msg){const box=$('url-error');box.textContent=msg;box.style.display='block';}
+
+// ユニットキーをソートする関数（"1-1","1-2","2-1" などに対応）
+function sortUnitKeys(keys){
+  return keys.sort((a,b)=>{
+    const pa=a.split('-').map(Number);
+    const pb=b.split('-').map(Number);
+    for(let i=0;i<Math.max(pa.length,pb.length);i++){
+      const na=pa[i]||0, nb=pb[i]||0;
+      if(na!==nb) return na-nb;
+    }
+    return 0;
+  });
+}
+
+// "1-1","1-2","2-1" → { "1":["1-1","1-2"], "2":["2-1"] } にグループ化
+function groupUnitsByParent(unitKeys){
+  const groups={};
+  unitKeys.forEach(k=>{
+    const parent=k.split('-')[0];
+    if(!groups[parent]) groups[parent]=[];
+    groups[parent].push(k);
+  });
+  return groups;
+}
+
+function updateUnits(){
+  const grade=$('grade').value;
+  const container=$('unit-sections');
+  container.innerHTML='';
+  selUnits={};
+  const units=WORDS[grade]||{};
+  const allKeys=sortUnitKeys(Object.keys(units));
+  if(allKeys.length===0){
+    container.innerHTML='<div style="font-size:13px;color:#999;">このシートに単語がありません</div>';
+    updateWordCountInfo();return;
+  }
+
+  const groups=groupUnitsByParent(allKeys);
+  const parentKeys=Object.keys(groups).sort((a,b)=>Number(a)-Number(b));
+
+  parentKeys.forEach(parent=>{
+    const subKeys=groups[parent];
+    const section=document.createElement('div');
+    section.className='unit-section';
+
+    // ヘッダー行（Unit X タイトル + まとめて選択ボタン）
+    const titleRow=document.createElement('div');
+    titleRow.className='unit-section-title';
+    const titleText=document.createElement('span');
+    titleText.style.fontWeight='500';
+    titleText.style.color='#555';
+    titleText.textContent='Unit '+parent;
+    const allBtn=document.createElement('button');
+    allBtn.className='select-all-btn';
+    allBtn.textContent='まとめて選択';
+    allBtn.onclick=()=>selectAllInGroup(parent,subKeys,allBtn);
+    titleRow.appendChild(titleText);
+    titleRow.appendChild(allBtn);
+    section.appendChild(titleRow);
+
+    // サブユニットボタン
+    const grid=document.createElement('div');
+    grid.className='unit-grid';
+    subKeys.forEach(u=>{
+      const b=document.createElement('button');
+      b.className='unit-btn';
+      b.textContent='Unit '+u;
+      b.dataset.unit=u;
+      b.dataset.parent=parent;
+      b.onclick=()=>toggleUnit(b,u,parent,subKeys);
+      grid.appendChild(b);
+    });
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+  updateWordCountInfo();
+}
+
+function selectAllInGroup(parent,subKeys,allBtn){
+  const allSelected=subKeys.every(u=>selUnits[u]);
+  subKeys.forEach(u=>{
+    const btn=document.querySelector('[data-unit="'+u+'"]');
+    if(allSelected){delete selUnits[u];if(btn)btn.classList.remove('sel');}
+    else{selUnits[u]=true;if(btn)btn.classList.add('sel');}
+  });
+  allBtn.textContent=allSelected?'まとめて選択':'まとめて解除';
+  updateWordCountInfo();
+}
+
+function toggleUnit(btn,unit,parent,subKeys){
+  if(selUnits[unit]){delete selUnits[unit];btn.classList.remove('sel');}
+  else{selUnits[unit]=true;btn.classList.add('sel');}
+  // まとめてボタンのラベル更新
+  const allSelected=subKeys.every(u=>selUnits[u]);
+  const allBtn=document.querySelector('[data-parent="'+parent+'"] .select-all-btn') ||
+    (() => { const btns=document.querySelectorAll('.select-all-btn'); for(const b of btns) if(b.closest('.unit-section').querySelector('[data-parent="'+parent+'"]')) return b; return null; })();
+  // より確実な取得
+  document.querySelectorAll('.unit-section').forEach(sec=>{
+    const first=sec.querySelector('[data-parent]');
+    if(first&&first.dataset.parent===parent){
+      const sb=sec.querySelector('.select-all-btn');
+      if(sb) sb.textContent=allSelected?'まとめて解除':'まとめて選択';
+    }
+  });
+  updateWordCountInfo();
+}
+
+function updateWordCountInfo(){
+  const grade=$('grade').value;const units=WORDS[grade]||{};
+  let cnt=0;Object.keys(selUnits).forEach(u=>{cnt+=(units[u]||[]).length;});
+  $('word-count-info').textContent=cnt+' 単語選択中';
+}
+
+function getSelectedWords(){
+  const grade=$('grade').value;const units=WORDS[grade]||{};
+  let words=[];
+  sortUnitKeys(Object.keys(units)).forEach(u=>{
+    if(selUnits[u]) words=words.concat(units[u].map(w=>({...w,unit:u})));
+  });
+  return words;
+}
+
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startQuiz(retryList){
+  const dir=$('direction').value,order=$('order').value,limitVal=$('qlimit').value;
+  let words=retryList||getSelectedWords();
+  if(!retryList&&words.length<2){alert('ユニットを選択してください（2単語以上必要です）');return;}
+  const dirs=dir==='both'?['ja2en','en2ja']:[dir];
+  let pool=[];dirs.forEach(d=>words.forEach(w=>pool.push({word:w,dir:d})));
+  if(order==='random') pool=shuffle(pool);
+  if(!retryList&&limitVal!=='all') pool=pool.slice(0,parseInt(limitVal));
+  questions=pool.map(p=>({...p,mode:Math.random()<0.5?'mc':'wr'}));
+  current=0;score=0;missedWords=[];answered=false;
+  if(!retryList) roundNum=1;
+  showScreen('s-quiz');renderQ();
+}
+
+function renderQ(){
+  const q=questions[current],total=questions.length;
+  $('prog').style.width=(current/total*100)+'%';
+  $('q-cnt').textContent=(current+1)+' / '+total;
+  answered=false;$('feedback').textContent='';$('feedback').className='feedback';$('next-btn').style.display='none';
+  const isJa2en=q.dir==='ja2en';
+  const question=isJa2en?q.word.ja:q.word.en;
+  const answer=isJa2en?q.word.en:q.word.ja;
+  const modeBadge=q.mode==='mc'?'<span class="badge badge-mc">4択</span>':'<span class="badge badge-wr">書いて確認</span>';
+  $('q-label').innerHTML=(isJa2en?'日本語 → 英語':'英語 → 日本語')+modeBadge;
+  $('q-unit-tag').textContent='Unit '+q.word.unit;
+  $('q-word').textContent=question;
+  if(q.mode==='mc'){
+    $('mc-area').style.display='block';$('wr-area').style.display='none';
+    const grade=$('grade').value;
+    const allWords=Object.values(WORDS[grade]||{}).flat();
+    const wrong=shuffle(allWords.filter(w=>w.en!==q.word.en)).slice(0,3).map(w=>isJa2en?w.en:w.ja);
+    const opts=shuffle([answer,...wrong]);
+    const cont=$('choices');cont.innerHTML='';
+    opts.forEach(opt=>{const b=document.createElement('button');b.className='ch-btn';b.textContent=opt;b.onclick=()=>checkMC(b,opt,answer,q.word);cont.appendChild(b);});
+  } else {
+    $('mc-area').style.display='none';$('wr-area').style.display='block';
+    $('show-ans-btn').style.display='flex';
+    $('ans-box').style.display='none';$('self-judge').style.display='none';
+    $('ans-word').textContent=answer;
+  }
+}
+
+function showAnswer(){$('show-ans-btn').style.display='none';$('ans-box').style.display='block';$('self-judge').style.display='block';}
+
+function judgeAnswer(correct){
+  if(answered) return;answered=true;
+  if(correct){score++;$('feedback').textContent='○ 正解！';$('feedback').className='feedback fb-ok';}
+  else{missedWords.push(questions[current].word);$('feedback').textContent='✕ 不正解';$('feedback').className='feedback fb-ng';}
+  document.querySelectorAll('#self-judge .btn').forEach(b=>b.disabled=true);
+  $('next-btn').style.display='inline-flex';
+}
+
+function checkMC(btn,chosen,answer,wordObj){
+  if(answered) return;answered=true;
+  document.querySelectorAll('.ch-btn').forEach(b=>{b.disabled=true;if(b.textContent===answer)b.classList.add('correct');});
+  if(chosen===answer){score++;$('feedback').textContent='○ 正解！';$('feedback').className='feedback fb-ok';}
+  else{btn.classList.add('wrong');missedWords.push(wordObj);$('feedback').textContent='✕ 正解：'+answer;$('feedback').className='feedback fb-ng';}
+  $('next-btn').style.display='inline-flex';
+}
+
+function nextQ(){current++;if(current>=questions.length)showResult();else renderQ();}
+
+function showResult(){
+  const total=questions.length,pct=Math.round(score/total*100);
+  if(pct===100){showScreen('s-perfect');$('perf-sub').textContent=roundNum+'回目のテストで全問正解！よくがんばりました！';return;}
+  showScreen('s-result');
+  $('r-score').textContent=score;$('r-total').textContent=total;$('r-pct').textContent=pct+'%';
+  $('round-info').innerHTML=roundNum>1?'<span class="round-badge">第'+roundNum+'ラウンド</span>':'';
+  const ml=$('miss-list');ml.innerHTML='';
+  if(missedWords.length>0){
+    $('miss-sec').style.display='block';
+    const unique=[...new Map(missedWords.map(w=>[w.en,w])).values()];
+    unique.forEach(w=>{const d=document.createElement('div');d.className='miss-item';d.innerHTML='<span class="miss-en">'+w.en+'</span><span class="miss-ja">'+w.ja+'</span>';ml.appendChild(d);});
+    $('retry-btn').style.display='inline-flex';
+  } else {$('miss-sec').style.display='none';$('retry-btn').style.display='none';}
+}
+
+function retryMiss(){roundNum++;const unique=[...new Map(missedWords.map(w=>[w.en,w])).values()];startQuiz(unique);}
+</script>
+</body>
+</html>
